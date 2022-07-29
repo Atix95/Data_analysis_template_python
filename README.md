@@ -122,8 +122,6 @@ For examples see the docstrings in the file.
     
     Update rc parameters so that the figures blend in nicely in the document.
 
-    For a list of all rc parameters visit the [documentations](https://matplotlib.org/stable/api/matplotlib_configuration_api.html#default-values-and-styling)
-
 ### Parameters
 
     designated_use : str, optional
