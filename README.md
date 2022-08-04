@@ -39,7 +39,6 @@ For examples see the docstrings in the file.
 
 ### Returns
     output : Output instance.
-
         Contains fit parameters, errors, covariance matrix etc. Additionally, prints the
         fit parameters with the respective error.
 
