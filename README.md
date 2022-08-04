@@ -17,24 +17,19 @@ For examples see the docstrings in the file.
 
 ### Parameters
     fit_function : callable
-
         Fit function to be fitted to the data. fit_function(beta, x) -> y
 
     x_values : array_like of rank-1
-
         x-values that the fit function is tobe fitted to.
 
     y_values : array_like of rank-1
-
         y-values that the fit function is to be fitted to.
 
     x_err : array_like of rank-1 or float
-
         Errors of the x-values. Must have the same dimensions as x_values or be float,
         if the errors are the same for all values.
 
     y_err : array_like of rank-1 or float
-
         Errors of the y-values. Must have the same dimensions as y_values or be float,
         if the errors are the same for all values.
 
