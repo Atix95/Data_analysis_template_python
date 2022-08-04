@@ -49,7 +49,7 @@ For examples see the docstrings in the file.
     The fit parameters as well as their errors can be accessed by calling the variable,
     that this function is assigned to, and adding .beta or .sd_beta.
 
-## least_squares_fit(fit_function, x_values, y_values, y_err=None, initial_guesses=None, bounds=(-float(inf), float("inf")), maxfev=800)
+## least_squares_fit(fit_function, x_values, y_values, y_err=None, initial_guesses=None, bounds=(-float("inf"), float("inf")), maxfev=800)
 
     Calculate the fit function to data with error bars in y direction using non-linear
     least squares.
