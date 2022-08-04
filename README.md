@@ -105,7 +105,8 @@ For examples see the docstrings in the file.
         The functions arcsin, arccos and arctan have to be called as asin, acos and
         atan, respectively.
 
-        For further deviating expressions [visit](https://docs.sympy.org/latest/modules/functions/elementary.html).
+        For further deviating expressions visit:
+        https://docs.sympy.org/latest/modules/functions/elementary.html
         
 
     variables : array_like of rank-1
