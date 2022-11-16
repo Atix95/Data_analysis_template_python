@@ -1,10 +1,10 @@
 # Data analysis template in Python
+
 A Jupyter Notebook with some functions I find useful for data analysis. Since I had to do it a lot over the course of my studies and I only started using Python in the later stages, I wanted to define some functions with callables that I regularly use to avoid copy-pasting and losing track of the code. I also intended to define a few functions that would save me formatting and typing in a report.
 
 Additionally, I wanted to learn how to annotate, document and raise exceptions properly, which is why I wrote extensive docstrings and excpetions for all of the functions. Since this was meant to be an exercise, the result might not be perfect and is definetly overkill in some instances.
 
 I hope you may find this helpful as well.
-
 
 # Functions
 
@@ -16,6 +16,7 @@ For examples see the docstrings in the file.
     orthogonal distance regression. 
 
 ### Parameters
+
     fit_function : callable
         Fit function to be fitted to the data. fit_function(beta, x) -> y
 
@@ -38,11 +39,13 @@ For examples see the docstrings in the file.
         must be the same as the number of fit parameters.
 
 ### Returns
+
     output : Output instance.
         Contains fit parameters, errors, covariance matrix etc. Additionally, prints the
         fit parameters with the respective error.
 
 ### Notes
+
     The fit parameters must be specified first and must be passed as an array! Lastly,
     the element of the function must be specified
 
@@ -55,6 +58,7 @@ For examples see the docstrings in the file.
     least squares.
 
 ### Parameters
+
     fit_function : callable
         Fit function to be fitted to the data. fit_function(x, ...) -> y
 
@@ -83,14 +87,17 @@ For examples see the docstrings in the file.
         The maximum number of function calls. Default is 800.
 
 ### Returns
+
     popt, perr : Tuple[Type[np.ndarray[float]], Type[np.ndarray[float]]]
         Fit parameters and their respective errors.
 
 ### Notes
+
     The independent element of the function must be specified first and then the 
     fit parameters individually!
 
 ## error_prop_latexify(func, variables)
+
     Calculate the error of a function according to gaussian error propagation and print
     its LaTeX expression as well as the passed function.
 
@@ -114,7 +121,7 @@ For examples see the docstrings in the file.
         iterable such as list, tuple or set.
 
 ## update_custom_rcparams(designated_use="article", fontsize=None)
-    
+
     Update rc parameters so that the figures blend in nicely in the document.
 
 ### Parameters
@@ -165,7 +172,7 @@ For examples see the docstrings in the file.
     fig_dimensions : Tuple[float, float]
         Tuple with the width and height of the figure/subplots in inches.
 
-## data_plot(x_values, y_values, xlabel, ylabel, x_err=None, y_err=None, marker=".", ls=None, color="C0", markersize=6, error_line_width=1.3, capsize_error_bar=5, label=None, zorder=0, grid_linewidth=0, xlim=None, ylim=None, xticks=None, yticks=None, scientific_axis="both", scilimits=(0, 0), **kwargs)
+## data_plot(x_values, y_values, xlabel, ylabel, x_err=None, y_err=None, marker=".", ls=None, color="C0", markersize=6, error_line_width=1.3, capsize_error_bar=5, label=None, zorder=0, grid_linewidth=0, xlim=None, ylim=None, xticks=None, yticks=None, scientific_axis="both", scilimits=(0, 0), comma_separation=False, **kwargs)
 
     Plot the data with error bars, if necessary. The purpose of this function is to set
     customized default values and plot dimensions that are often used.
@@ -244,11 +251,15 @@ For examples see the docstrings in the file.
 
         Default is (0, 0).
 
+    comma_separation : boolean, optional
+        If True, the decimal delimiter is comma instead of dot without an extra space
+        after the comma. Default is False.
+
     **kwargs : optional
         Parameters of the function calculate_fig_dimensions().
         For more information see the documentation of said function.
 
-## show_the_legend_with_ordered_labels(label_order=None, framealpha=1, loc="best", legend_fontsize=None)
+## show_the_legend_with_ordered_labels(label_order=None, framealpha=1, loc="best", legend_fontsize=None, legend_line_width=2)
 
     Show the labels of the plot in the desired order.
 
@@ -270,7 +281,12 @@ For examples see the docstrings in the file.
         Fontsize of the text shown in the legend. If None is passed, the fontsize is
         read out from the rc parameters and set to that value. Default is None.
 
+    legend_line_width : flaot or int, optional
+        Width of the lines that are shown next to the labels in the legend. this is
+        independent of the width displayed in the graphs. Default is 2.
+
 ## save_figure(fname, ftype)
+
     Save the figure that was created with matplotlib.
     
     If the folder "images", where the figures are stored, does not yet exist, it is
@@ -312,7 +328,65 @@ For examples see the docstrings in the file.
 
     units : str, optional
         Units of the value. Default is None.
+
 ### Notes
 
     Text rendering with LaTeX has to be active. For this simply use:
     plt.rcParams.update({"text.usetex": True})
+
+## mean_error(values)
+
+    Calculate the statistical uncertainty of a mean value according to the "Guide to the
+    Expression of Uncertainty in Measurement" (GUM).
+
+    It is assumed that the values are normally distributed and that the interval -t to
+    +t encompasses 68.27% of the distribution.
+
+    Therefore, the degree of freedom is determined by n - 1, where n is the number of
+    independent observations.
+
+    For further informations visit:
+    https://www.bipm.org/en/committees/jc/jcgm/publications
+
+### Parameters
+
+    values : array_like of rank-1
+        Values from which the mean value and its statistical uncertainty are to be
+        determined. Must be an iterable of at least two values.
+
+### Returns
+
+   mean_error : float
+            Statistical uncertainty of the mean according to the t-distribution.
+
+### Example
+
+    >>> mean_error(np.arange(10))
+    1.0148727342217185
+
+## combined_mean_error(values, errors)
+
+    Calculate the combined error of a mean value from its statistical uncertainty and
+    the mean of the individual errors.
+
+    All individual errors are weighted the same.
+
+### Parameters
+
+    values : array_like of rank-1
+        Values from which the mean value and its statistical uncertainty are to be
+        determined. Must be an iterable of at least two values.
+
+    errors : array_like of rank-1 or float
+        Errors from the values. Must have the same length as values or be a float or
+        int, if the error is the same for all values.
+
+### Returns
+
+        combined_error : float
+            Combined uncertainty of the mean value.
+
+### Example
+
+    >>> combined_mean_error([1, 2, 3, 4, 5], [1, 1.2, 0.7, 1, 2])
+    0.8399380929568561
