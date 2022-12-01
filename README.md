@@ -1,392 +1,119 @@
 # Data analysis template in Python
 
-A Jupyter Notebook with some functions I find useful for data analysis. Since I had to do it a lot over the course of my studies and I only started using Python in the later stages, I wanted to define some functions with callables that I regularly use to avoid copy-pasting and losing track of the code. I also intended to define a few functions that would save me formatting and typing in a report.
+A library with some functions I find useful for data analysis. Since I had to do it
+a lot over the course of my studies and I only started using Python in the later
+stages, I wanted to define some functions with callables that I regularly use to
+avoid copy-pasting and losing track of the code. I also intended to define a few
+functions that would save formatting and typing in a report.
 
-Additionally, I wanted to learn how to annotate, document and raise exceptions properly, which is why I wrote extensive docstrings and excpetions for all of the functions. Since this was meant to be an exercise, the result might not be perfect and is definetly overkill in some instances.
+The Library is also available as a Jupyter Notebook to facilitate possible
+intentional change to the functions.
 
 I hope you may find this helpful as well.
 
-# Functions
+## Installation
 
-For examples see the docstrings in the file.
+    pip install scientific_data_analysis_library
 
-## odr_fit(fit_function, x_values, y_values, x_err, y_err, initial_guesses)
+## Usage
 
-    Calculate the fit function to data with error bars in both x and y direction using 
-    orthogonal distance regression. 
+    import scientific_data_analysis_library as sci_lib
 
-### Parameters
+## Library
 
-    fit_function : callable
-        Fit function to be fitted to the data. fit_function(beta, x) -> y
+For extensive documentation and examples see the doc strings of the respective
+function.
 
-    x_values : array_like of rank-1
-        x-values that the fit function is tobe fitted to.
+### Latexify
 
-    y_values : array_like of rank-1
-        y-values that the fit function is to be fitted to.
+Function(s) to save (painful) typing in a LaTeX document.
 
-    x_err : array_like of rank-1 or float
-        Errors of the x-values. Must have the same dimensions as x_values or be float,
-        if the errors are the same for all values.
+#### error_prop_latexify(func, variables)
 
-    y_err : array_like of rank-1 or float
-        Errors of the y-values. Must have the same dimensions as y_values or be float,
-        if the errors are the same for all values.
+Calculate the error of a function according to Gaussian error propagation and print
+its LaTeX expression as well as the passed function.
 
-    initial_guesses : array_like of rank-1
-        Initial guesses of the fit parameters beta. The length of the rank-1 sequence
-        must be the same as the number of fit parameters.
+### Analysis
 
-### Returns
+Functions to analyze and evaluate data.
 
-    output : Output instance.
-        Contains fit parameters, errors, covariance matrix etc. Additionally, prints the
-        fit parameters with the respective error.
+#### mean_error(values)
 
-### Notes
+Calculate the statistical uncertainty of a mean value according to the "Guide to the
+Expression of Uncertainty in Measurement" (GUM).
 
-    The fit parameters must be specified first and must be passed as an array! Lastly,
-    the element of the function must be specified
+It is assumed that the values are normally distributed and that the interval -t to
++t encompasses 68.27% of the distribution.
 
-    The fit parameters as well as their errors can be accessed by calling the variable,
-    that this function is assigned to, and adding .beta or .sd_beta.
+Therefore, the degree of freedom is determined by n - 1, where n is the number of
+independent observations.
 
-## least_squares_fit(fit_function, x_values, y_values, y_err=None, initial_guesses=None, bounds=(-float("inf"), float("inf")), maxfev=800)
+For further information visit:
+<https://www.bipm.org/en/committees/jc/jcgm/publications>
 
-    Calculate the fit function to data with error bars in y direction using non-linear
-    least squares.
+#### combined_mean_error(values, errors)
 
-### Parameters
+Calculate the combined error of a mean value from its statistical uncertainty and
+the mean of the individual errors.
 
-    fit_function : callable
-        Fit function to be fitted to the data. fit_function(x, ...) -> y
+All individual errors are weighted the same.
 
-    x_values : array_like of rank-1
-        x-values that the fit function is to be fitted to.
+#### odr_fit(fit_function, x_values, y_values, x_err, y_err, initial_guesses)
 
-    y_values : array_like of rank-1
-        y-values that the fit function is to be fitted to.
+Calculate the fit function to data with error bars in both x and y direction using
+orthogonal distance regression and return the results.
 
-    y_err : array_like of rank-1 or float, optional
-        Errors of the y-values. Must have the same dimensions as y_values or be float,
-        if the errors are the same for all values. Default is None.
+#### least_squares_fit(fit_function, x_values, y_values, y_err=None, initial_guesses=None, bounds=(-float("inf"), float("inf")), maxfev=800)
 
-    initial_guesses : array_like of rank-1, optional
-        Initial guesses of the fit parameters. The length of the rank-1 sequence
-        must be the same as the number of fit parameters. Default is None
+Calculate the fit function to data with error bars in y direction using non-linear
+least squares and return the results.
 
-    bounds : 2-tuple of array_like, optional
-        Bounds on fit parameters. Can be specified for each fit parameter as an iterable
-        of the respective boundary or as a float,
-        
-        in which case they are the same for all fit parameters. Default is
-        (-float("inf"), float("inf")), which translates to no boundaries.
+### Calculations
 
-    maxfev : int, optional
-        The maximum number of function calls. Default is 800.
+Functions to simplify plotting and visualizing data including an easy way to show
+fit results in the legend.
 
-### Returns
+#### update_custom_rcparams(designated_use="article", fontsize=None)
 
-    popt, perr : Tuple[Type[np.ndarray[float]], Type[np.ndarray[float]]]
-        Fit parameters and their respective errors.
+Update RC parameters so that the figures blend in nicely in the document.
 
-### Notes
+#### calculate_fig_dimensions(article_type="one_column", fig_width_pt=None, fig_height_pt=None, ratio=1, subplots=(1, 1), **kwargs)
 
-    The independent element of the function must be specified first and then the 
-    fit parameters individually!
+Calculate the figure dimensions so that the figure has text width in the article and
+the right font and font size.
 
-## error_prop_latexify(func, variables)
+#### data_plot(x_values, y_values, xlabel, ylabel, x_err=None, y_err=None, marker=".", ls=None, color="C0", markersize=6, error_line_width=1.3, capsize_error_bar=5, label=None, zorder=0, grid_linewidth=0, xlim=None, ylim=None, xticks=None, yticks=None, scientific_axis="both", scilimits=(0, 0), comma_separation=False, **kwargs)
 
-    Calculate the error of a function according to gaussian error propagation and print
-    its LaTeX expression as well as the passed function.
+Plot the data with error bars, if necessary. The purpose of this function is to set
+customized default values and plot dimensions that are often used.
 
-### Parameters
+#### add_label_to_legend(variable_name_or_text, variable_value=None, varibale_err=None, precision=0, magnitude=0, units=None)
 
-    func : str
-        Function to which the error propagation is to be applied.
+Create labels for variables with their respective values and errors that are to be
+shown in the legend of the plot.
 
-        It must be passed in Python syntax but without package syntax such as math.sin,
-        np.sin or sp.sin.
+If None is passed to the value, its error and the units, the label entirely
+consists of the text that is passed to the variable name.
 
-        The functions arcsin, arccos and arctan have to be called as asin, acos and
-        atan, respectively.
+#### show_the_legend_with_ordered_labels(label_order=None, framealpha=1, loc="best", legend_fontsize=None, legend_line_width=2)
 
-        For further deviating expressions visit:
-        https://docs.sympy.org/latest/modules/functions/elementary.html
-        
+Show the labels of the plot in the desired order and show a uniform line width in
+the legend next to the labels.
 
-    variables : array_like of rank-1
-        The variables to derive to. They must be passed in string format listed in an
-        iterable such as list, tuple or set.
+#### save_figure(fname, ftype)
 
-## update_custom_rcparams(designated_use="article", fontsize=None)
+Save the figure that was created with Matplotlib.
 
-    Update rc parameters so that the figures blend in nicely in the document.
+If the folder "images", where the figures are stored, does not yet exist, it is
+created first in the directory of this file.
 
-### Parameters
+## Note
 
-    designated_use : str, optional
-        Designated use of the figure to adjust the fontsize to common default values.
-        Can be either 'article' or 'powerpoint'. Default is 'article'.
+I wanted to learn how to annotate, document and raise exceptions properly, which is
+why I wrote extensive doc strings and exceptions for all the functions. Since this
+was meant to be an exercise, the result might not be perfect and is definitely
+overkill in some instances.
 
-    fontsize : float, optional
-        Fontsize of the labels, legend, x- and y-ticklabels and title. Set this e.g. to
-        the fontsize of your LaTeX document. Default is None.
+## License
 
-## calculate_fig_dimensions(article_type="one_column", fig_width_pt=None, fig_height_pt=None, ratio=1, subplots=(1, 1), **kwargs)
-
-    Calculate the figure dimensions so that the figure has text width in the article and
-    the right font and fontsize.
-
-### Parameters
-
-    article_type : str, optional
-        Can be set to 'one_column' or 'two_column' to set the figure width to 360pt or
-        246 pt, respectively. Default is 'one_column'.
-
-    fig_width_pt : float, optional
-        Figure width in pts. Use \showthe\\textwidth or \showthe\columnwidth for a one
-        or two column article in LaTeX to insert the figures with the correct size.\n
-        Default is None.
-
-    fig_height_pt : float, optional
-        Figure height in pts. If no value is passed, the height is calculated from the
-        width by multiplying it with the golden ratio to obatin an asthetic ratio.\n
-        Default is None.
-
-    ratio : float, optional
-        Ratio of the plot. Takes values between 0 and 1. Default is 1.
-
-    subplots : Tuple[float, float], optional
-        Number of subplots that are to be plotted per line and column. They are also
-        used to adjust the sizes of the subplots within the figure accordingly.\n
-        Default is (1, 1).
-
-    **kwargs : optional
-        Parameters of the function update_custom_rcparams().
-        For more information see the documentation of said function.
-
-### Returns
-
-    fig_dimensions : Tuple[float, float]
-        Tuple with the width and height of the figure/subplots in inches.
-
-## data_plot(x_values, y_values, xlabel, ylabel, x_err=None, y_err=None, marker=".", ls=None, color="C0", markersize=6, error_line_width=1.3, capsize_error_bar=5, label=None, zorder=0, grid_linewidth=0, xlim=None, ylim=None, xticks=None, yticks=None, scientific_axis="both", scilimits=(0, 0), comma_separation=False, **kwargs)
-
-    Plot the data with error bars, if necessary. The purpose of this function is to set
-    customized default values and plot dimensions that are often used.
-
-### Parameters
-
-    x_values : array_like of rank-1
-        Values of the x-axis.
-
-    y_values : array_like of rank-1
-        Values of the y-axis.
-
-    xlabel : str
-        Label of the x-axis.
-
-    ylabel : str
-        Label of the y-axis.
-
-    x_err : array_like of rank-1 or float, optional
-        Errors of the x values. Must have the same dimensions as x_values or be float,
-        if they are the same for all values. Default is None.
-
-    y_err : array_like of rank-1 or float, optional
-        Errors of the y values. Must have the same dimensions as y_values or be float,
-        if they are the same for all values. Default is None.
-
-    marker : str, optional
-        How the data points should be drawn in the plot. Default is ".".
-
-    color : str, optional
-        Color of the data points and error bars. Default is "C0".
-
-    markersize : float, optional
-        Size of the data points. Default is 6.
-
-    ls : str, optinal
-        Linestyle of the data. Default is None.
-
-    error_line_width : float, optional
-        Linewidth of the errorbars. A value below 1.5 centers the errorbars correctly
-        around the data points. Default is 1.3.
-
-    capsize_error_bar : float, optional
-        Size of the bars perpendicular to the errorbars. Default is 5.
-
-    label : str, optional
-        Label of the data that is to be shown in the legend. Default is None.
-
-    zorder : float, optional
-        Value that indicates in which order the contents of the plot are to be drawn.
-        The lowest value is drawn first. Default is 0.
-
-    grid_linewidth : float, optional
-        Linewidth of the grid that is plotted in the background. Default is 0.
-
-    xlim : Sequence[float, float], optional
-        Tuple of the lower and upper limits of the x-axis. Default is None.
-
-    ylim : Sequence[float, float], optional
-        Tuple of the lower and upper limits of the y-axis. Default is None.
-
-    xticks : Sequence[float], optional
-        Tick locations of the x-axis. To create evenly spaced floats, best practice is
-        to use np.arange(). Default is None.
-
-    yticks : Sequence[float], optional
-        Tick locations of the y-axis. To create evenly spaced floats, best practice is
-        to use np.arange(). Default is None.
-
-    scientific_axis : str, optional
-        Which axis should be used for scientific notations. Default is "both".
-
-    scilimits : Tuple[int, int], optional
-        Tuple of two integers (m, n); scientific notation will be used for numbers
-        outside the range 10**m to 10**n. If (0, 0) is used, all numbers are included.
-
-        Default is (0, 0).
-
-    comma_separation : boolean, optional
-        If True, the decimal delimiter is comma instead of dot without an extra space
-        after the comma. Default is False.
-
-    **kwargs : optional
-        Parameters of the function calculate_fig_dimensions().
-        For more information see the documentation of said function.
-
-## show_the_legend_with_ordered_labels(label_order=None, framealpha=1, loc="best", legend_fontsize=None, legend_line_width=2)
-
-    Show the labels of the plot in the desired order.
-
-### Parameters
-
-    label_order : Sequence[int], optional
-        Sequence of order of the labels starting with 0. len(label_order) must be the
-        same as the number of labels. Default is None.
-    
-    framealpha_legend : float, optional
-        Transparency of the legend. Value of 0 means full and 1 no transparency. Default
-        is 1.
-
-    loc : str or Tuple[float, float], optional
-        Location of the legend. Can also be be a 2-tuple giving the coordinates of the
-        lower-left corner of the legend in axes coordinates. Default is "best".
-
-    legend_fontsize : float, optional
-        Fontsize of the text shown in the legend. If None is passed, the fontsize is
-        read out from the rc parameters and set to that value. Default is None.
-
-    legend_line_width : flaot or int, optional
-        Width of the lines that are shown next to the labels in the legend. this is
-        independent of the width displayed in the graphs. Default is 2.
-
-## save_figure(fname, ftype)
-
-    Save the figure that was created with matplotlib.
-    
-    If the folder "images", where the figures are stored, does not yet exist, it is
-    created first in the dir of this file.
-
-### Parameters
-
-    fname : str
-        Filename of the figure to be saved.
-
-    ftype : str, optional
-        Filetype of the figure to be saved. Options are e.g. "pdf", "png", "svg", etc.
-        Default is "pdf".
-
-## add_label_to_legend(variable_name_or_text, variable_value=None, varibale_err=None, precision=0, magnitude=0, units=None)
-
-    Create labels for variables with their respective values and erros that are to be
-    shown in the legend of the plot.
-
-    If None is passed to the value and its error and the units, the label entirely
-    consists of the text that is passed to the variable name.
-
-### Parameters
-
-    variable_name_or_text : str
-        Name of the variable or text that is to be shown in the legend. 
-
-    variable_value : float or int, optional
-        Value of the variable. Default is None.
-
-    variable_err : float or int, optional
-        Uncertainty of the value. Default is None.
-
-    precision : int, optional
-        Up to what decimal place the data is to be shown. Default is 0.
-
-    magnitude : int, optional
-        Order of magnitude with which the value is to be represented. Default is 0.
-
-    units : str, optional
-        Units of the value. Default is None.
-
-### Notes
-
-    Text rendering with LaTeX has to be active. For this simply use:
-    plt.rcParams.update({"text.usetex": True})
-
-## mean_error(values)
-
-    Calculate the statistical uncertainty of a mean value according to the "Guide to the
-    Expression of Uncertainty in Measurement" (GUM).
-
-    It is assumed that the values are normally distributed and that the interval -t to
-    +t encompasses 68.27% of the distribution.
-
-    Therefore, the degree of freedom is determined by n - 1, where n is the number of
-    independent observations.
-
-    For further informations visit:
-    https://www.bipm.org/en/committees/jc/jcgm/publications
-
-### Parameters
-
-    values : array_like of rank-1
-        Values from which the mean value and its statistical uncertainty are to be
-        determined. Must be an iterable of at least two values.
-
-### Returns
-
-   mean_error : float
-            Statistical uncertainty of the mean according to the t-distribution.
-
-### Example
-
-    >>> mean_error(np.arange(10))
-    1.0148727342217185
-
-## combined_mean_error(values, errors)
-
-    Calculate the combined error of a mean value from its statistical uncertainty and
-    the mean of the individual errors.
-
-    All individual errors are weighted the same.
-
-### Parameters
-
-    values : array_like of rank-1
-        Values from which the mean value and its statistical uncertainty are to be
-        determined. Must be an iterable of at least two values.
-
-    errors : array_like of rank-1 or float
-        Errors from the values. Must have the same length as values or be a float or
-        int, if the error is the same for all values.
-
-### Returns
-
-        combined_error : float
-            Combined uncertainty of the mean value.
-
-### Example
-
-    >>> combined_mean_error([1, 2, 3, 4, 5], [1, 1.2, 0.7, 1, 2])
-    0.8399380929568561
+This project is licensed under the terms of "The Unlicense" license.
