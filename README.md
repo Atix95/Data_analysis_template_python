@@ -1,4 +1,4 @@
-# Data analysis Library in Python
+# Scientific data analysis library in Python
 
 A library with some functions I find useful for data analysis. Since I had to do it
 a lot over the course of my studies and I only started using Python in the later
