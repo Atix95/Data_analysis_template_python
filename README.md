@@ -13,7 +13,7 @@ I hope you may find this helpful as well.
 
 ## Installation
 
-    pip install git+https://github.com/Atix95/scientific_data_analysis_library.git
+    pip install git+https://github.com/Atix95/scientific_data_analysis.git
 
 ## Usage
 
