@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as file:
     long_description = file.read()
 
 setup(
-    name="scientific_data_analysis_library",
+    name="scientific_data_analysis",
     version="1.0.0",
     author="Michael Weide",
     author_email="michael.weide08@gmail.com",
@@ -21,5 +21,5 @@ setup(
         "sympy",
         "uncertainties",
     ],
-    packages=["scientific_data_analysis_library"],
+    packages=["scientific_data_analysis"],
 )
