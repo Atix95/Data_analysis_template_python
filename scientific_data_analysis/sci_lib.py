@@ -2,6 +2,7 @@ import locale
 import os
 import pytexit
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import sympy as sp
 
@@ -598,7 +599,7 @@ def data_plot(
     scilimits: Optional[Tuple[int, int]] = (0, 0),
     comma_separation: Optional[bool] = False,
     **kwargs,
-) -> None:
+) -> Tuple[mpl.figure.Figure, mpl.axes._subplots.AxesSubplot]:
     """
     Plot the data with error bars, if necessary. The purpose of this function is to set
     customized default values and plot dimensions that are often used.
@@ -691,10 +692,15 @@ def data_plot(
         Parameters of the function calculate_fig_dimensions().
         For more information see the documentation of said function.
 
+    Returns
+    -------
+    Tuple[matplotlib.figure.Figure, matplotlib.axes._subplots.AxesSubplot]
+        Figure and AxesSubplot class that can be used for further settings.
+
     Example
     -------
     >>> np.random.seed(1294899)  # For reproducibility
-    >>> data_plot(
+    >>> fig, ax = data_plot(
     >>>     np.linspace(0, 2, 21),
     >>>     np.random.random_integers(20, size=21),
     >>>     "x-values",
@@ -753,6 +759,8 @@ def data_plot(
 
     if yticks is not None:
         plt.yticks(yticks)
+
+    return fig, ax
 
 
 def add_label_to_legend(
