@@ -64,12 +64,12 @@ least squares and return the results.
 
 Update RC parameters so that the figures blend in nicely in the document.
 
-### calculate_fig_dimensions(article_type="one_column", fig_width_pt=None, fig_height_pt=None, ratio=1, subplots=(1, 1), \*\*kwargs)
+### calculate_fig_dimensions(article_type="one_column", fig_width_pt=None, fig_height_pt=None, ratio=1, subplots=(1, 1), kwargs)
 
 Calculate the figure dimensions so that the figure has text width in the article and
 the right font and font size.
 
-### data_plot(x_values, y_values, xlabel, ylabel, x_err=None, y_err=None, marker=".", ls=None, color="C0", markersize=6, error_line_width=1.3, capsize_error_bar=5, label=None, zorder=0, grid_linewidth=0, xlim=None, ylim=None, xticks=None, yticks=None, scientific_axis="both", scilimits=(0, 0), comma_separation=False, \*\*kwargs)
+### data_plot(x_values, y_values, xlabel, ylabel, x_err=None, y_err=None, marker=".", ls=None, color="C0", markersize=6, error_line_width=1.3, capsize_error_bar=5, label=None, zorder=0, grid_linewidth=0, xlim=None, ylim=None, xticks=None, yticks=None, scientific_axis="both", scilimits=(0, 0), comma_separation=False, kwargs)
 
 Plot the data with error bars, if necessary. The purpose of this function is to set
 customized default values and plot dimensions that are often used.
