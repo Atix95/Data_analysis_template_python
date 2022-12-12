@@ -17,7 +17,7 @@ I hope you may find this helpful as well.
 
 ## Usage
 
-    import scientific_data_analysis_library as sci_lib
+    import scientific_data_analysis as sci_lib
 
 ## Library
 
