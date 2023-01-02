@@ -6,7 +6,7 @@ stages, I wanted to define some functions with callables that I regularly use to
 avoid copy-pasting and losing track of the code. I also intended to define a few
 functions that would save formatting and typing in a report.
 
-The Library is also available as a Jupyter Notebook to facilitate possible
+The library is also available as a Jupyter Notebook to facilitate possible
 intentional change to the functions.
 
 I hope you may find this helpful as well.
