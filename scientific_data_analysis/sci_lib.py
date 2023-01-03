@@ -484,7 +484,7 @@ def calculate_fig_dimensions(
     subplots: Optional[Tuple[float, float]] = (1, 1),
     **kwargs,
 ) -> Tuple[float, float]:
-    """
+    r"""
     Calculate the figure dimensions so that the figure has text width in the article and
     the right font and font size.
 
@@ -495,13 +495,13 @@ def calculate_fig_dimensions(
         246 pt, respectively. Default is 'one_column'.
 
     fig_width_pt : float, optional
-        Figure width in pts. Use \showthe\\textwidth or \showthe\columnwidth for a one
-        or two column article in LaTeX to insert the figures with the correct size.\n
+        Figure width in pts. Use \showthe\textwidth or \showthe\columnwidth for a one
+        or two column article in LaTeX to insert the figures with the correct size.
         Default is None.
 
     fig_height_pt : float, optional
         Figure height in pts. If no value is passed, the height is calculated from the
-        width by multiplying it with the golden ratio to obatin an asthetic ratio.\n
+        width by multiplying it with the golden ratio to obatin an asthetic ratio.
         Default is None.
 
     ratio : float, optional
@@ -509,7 +509,7 @@ def calculate_fig_dimensions(
 
     subplots : Tuple[float, float], optional
         Number of subplots that are to be plotted per line and column. They are also
-        used to adjust the sizes of the subplots within the figure accordingly.\n
+        used to adjust the sizes of the subplots within the figure accordingly.
         Default is (1, 1).
 
     **kwargs : optional
