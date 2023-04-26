@@ -599,7 +599,7 @@ def data_plot(
     scilimits: Optional[Tuple[int, int]] = (0, 0),
     comma_separation: Optional[bool] = False,
     **kwargs,
-) -> Tuple[mpl.figure.Figure, mpl.axes._subplots.Axes]:
+) -> Tuple[mpl.figure.Figure, mpl.axes.Axes]:
     """
     Plot the data with error bars, if necessary. The purpose of this function is to set
     customized default values and plot dimensions that are often used.
