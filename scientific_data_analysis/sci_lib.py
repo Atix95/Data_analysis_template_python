@@ -6,9 +6,8 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import sympy as sp
 
-from mypy_extensions import VarArg
 from scipy import odr, optimize
-from typing import Callable, Iterable, Optional, Sequence, Tuple, Type, Union
+from typing import Any, Callable, Iterable, Optional, Sequence, Tuple, Type
 from uncertainties import unumpy
 
 
@@ -27,7 +26,7 @@ def error_prop_latexify(func: str, variables: Iterable[str]) -> None:
 
         The functions arcsin, arccos and arctan have to be called as asin, acos and
         atan, respectively.
-        
+
         For further deviating expressions visit:
         https://docs.sympy.org/latest/modules/functions/elementary.html
 
@@ -40,8 +39,8 @@ def error_prop_latexify(func: str, variables: Iterable[str]) -> None:
     >>> error_prop_latexify("m_ji*x+b*erf(x)", ("m_ji", "b"))
     \sqrt{\left(x u\left(m_{ji}\\right)\\right)^2+\left(1u\left(n\\right)\\right)^2}
     >>> error_prop_latexify("sin(x**a_ij*3) + b*erfc(x)", ("a_ij", "b"))
-    \sqrt{\left(3x^{a_{ij}} \ln\left(x\\right)\cos\left(3x^{a_{ij}}\\right) 
-    u\left(a_{ij}\\right)\\right)^2+\left(\operatorname{erfc}\left(x\\right) 
+    \sqrt{\left(3x^{a_{ij}} \ln\left(x\\right)\cos\left(3x^{a_{ij}}\\right)
+    u\left(a_{ij}\\right)\\right)^2+\left(\operatorname{erfc}\left(x\\right)
     u\left(b\\right)\\right)^2}
 
     """
@@ -112,7 +111,7 @@ def error_prop_latexify(func: str, variables: Iterable[str]) -> None:
     pytexit.py2tex(err_prop_eq, tex_enclosure="$", print_formula=False)
 
 
-def mean_error(values: Sequence[Union[float, int]]) -> float:
+def mean_error(values: Sequence[float | int]) -> float:
     """
     Calculate the statistical uncertainty of a mean value according to the "Guide to the
     Expression of Uncertainty in Measurement" (GUM).
@@ -240,16 +239,42 @@ def combined_mean_error(values, errors) -> float:
     return np.sqrt((1 / n * np.mean(errors)) ** 2 + mean_error(values) ** 2)
 
 
+def weighted_mean(values: Sequence[float | int], errors: Sequence[float]) -> float:
+    """
+    Calculate the weighted mean of a set of values with their respective errors.
+
+    Parameters
+    ----------
+    values : array_like of rank-1
+        Values from which the weighted mean is to be determined. Must be an iterable of
+        at least two values.
+
+    errors : array_like of rank-1
+        Errors of the values. Must be an iterable of at least two values.
+
+    Returns
+    -------
+        weighted_mean : float
+            Weighted mean of the values.
+
+    Example
+    -------
+    >>> weighted_mean(np.arange(10), np.arange(10))
+    4.5
+    """
+    return np.sum(values / errors**2) / np.sum(1 / errors**2)
+
+
 def odr_fit(
     fit_function: Callable[[Sequence[float], Sequence[float]], Sequence[float]],
     x_values: Sequence[float],
     y_values: Sequence[float],
-    x_err: Union[Sequence[float], float],
-    y_err: Union[Sequence[float], float],
+    x_err: Sequence[float] | float,
+    y_err: Sequence[float] | float,
     initial_guesses: Sequence[float],
 ) -> Type[odr.Output]:
     """
-    Calculate the fit function to data with error bars in both x and y direction using 
+    Calculate the fit function to data with error bars in both x and y direction using
     orthogonal distance regression and return the results.
 
     Parameters
@@ -277,7 +302,7 @@ def odr_fit(
 
     Returns
     -------
-    output : Output instance. 
+    output : Output instance.
         Contains fit parameters, errors, covariance matrix etc. Additionally, prints the
         fit parameters with the respective error.
 
@@ -325,12 +350,10 @@ def odr_fit(
 
 
 def least_squares_fit(
-    fit_function: Callable[
-        [Union[Sequence[float], float], VarArg(float)], Union[Sequence[float], float]
-    ],
+    fit_function: Callable[[Sequence[float] | float, Any], Sequence[float] | float],
     x_values: Sequence[float],
     y_values: Sequence[float],
-    y_err: Union[Sequence[float], float] = None,
+    y_err: Sequence[float] | float = None,
     initial_guesses: Sequence[float] = None,
     bounds: Tuple[float, float] = (-float("inf"), float("inf")),
     maxfev: int = 800,
@@ -361,7 +384,7 @@ def least_squares_fit(
     bounds : 2-tuple of array_like, optional
         Bounds on fit parameters. Can be specified for each fit parameter as an iterable
         of the respective boundary or as a float,
-        
+
         in which case they are the same for all fit parameters. Default is
         (-float("inf"), float("inf")), which translates to no boundaries.
 
@@ -375,7 +398,7 @@ def least_squares_fit(
 
     Notes
     -----
-    The independent element of the function must be specified first and then the 
+    The independent element of the function must be specified first and then the
     fit parameters individually!
 
     Example
@@ -408,6 +431,194 @@ def least_squares_fit(
     print("\n".join(str(result) for result in results))
 
     return popt, perr
+
+
+class Fit:
+    def __init__(
+        self,
+        x_data,
+        y_data,
+        start_parameter,
+        sigma,
+        fit_function=None,
+        absolute_sigma=True,
+        maxfev=800,
+        operating_parameters=None,
+        fit_method="least_squares",
+    ) -> None:
+        self.key = operating_parameters
+        self.x_data = x_data
+        self.y_data = y_data
+        self.sigma = sigma
+        self.start_parameter = start_parameter
+        self.fit_function = fit_function
+        self.absolute_sigma = absolute_sigma
+        self.maxfev = maxfev
+        self.fit_method = fit_method
+        self.apply_fit()
+        self.fit_parameters_error = self.calculate_fit_parameter_error()
+        self.correlation_matrix = self.convert_covariance_matrix_to_correlation_matrix()
+
+    def __repr__(self) -> str:
+        self.fit_parameters_error = np.array(
+            [
+                np.sqrt(self.covariance_matrix[i, i])
+                for i in range(len(self.fit_parameters))
+            ]
+        )
+        results = unumpy.uarray(self.fit_parameters, self.fit_parameters_error)
+        return "\n".join(str(result) for result in results)
+
+    def apply_fit(self) -> None:
+        if self.fit_method == "least_squares":
+            self.fit_parameters, self.covariance_matrix = optimize.curve_fit(
+                self.fit_function,
+                self.x_data,
+                self.y_data,
+                p0=self.start_parameter,
+                sigma=self.sigma,
+                absolute_sigma=self.absolute_sigma,
+                maxfev=self.maxfev,
+            )
+            self.chisquare = np.sum(
+                (
+                    (self.y_data - self.fit_function(self.x_data, *self.fit_parameters))
+                    / self.sigma
+                )
+                ** 2
+            )
+            self.reduced_chisquare = self.chisquare / (
+                len(self.x_data) - len(self.fit_parameters)
+            )
+        elif self.fit_method == "odr":
+            data = odr.RealData(self.x_data, self.y_data, sy=self.sigma)
+            model = odr.Model(self.fit_function)
+            odr_ = odr.ODR(data, model, beta0=self.start_parameter)
+            output = odr_.run()
+            self.covariance_matrix = self.output.cov_beta
+            self.reduced_chisquare = self.output.res_var
+            self.chisquare = None
+            self.reduced_chisquare = output.res_var
+        else:
+            raise ValueError(
+                f"Not a valid fit method: {self.fit_method!r}. "
+                + "Must be either 'least_squares' or 'odr'."
+            )
+
+    def calculate_fit_parameter_error(self):
+        return np.array(
+            [
+                np.sqrt(self.covariance_matrix[index, index])
+                for index in range(len(self.fit_parameters))
+            ]
+        )
+
+    def convert_covariance_matrix_to_correlation_matrix(self):
+        diagonalized_matrix = np.sqrt(np.diag(np.diag(self.covariance_matrix)))
+        inverted_diagonalized_matrix = np.linalg.inv(diagonalized_matrix)
+        return (
+            inverted_diagonalized_matrix
+            @ self.covariance_matrix
+            @ inverted_diagonalized_matrix
+        )
+
+
+class CorrelatedError:
+    """
+    Calulates the error propagation of correlated fit results by applying the following
+    formula:
+        f(x, p0, p1) u(f) = sqrt( sum_i,j( df/dp_i * df/dp_j * cov(i, j) )
+
+    Parameters
+    ----------
+    function: sympy expression
+        The function for which the error propagation is to be calculated.
+    variables: list of sympy variables
+        Variables according to which the function is differentiated. The independent
+        variable has to be the last one.
+    covariance_matrix: numpy array
+        Covariance matrix of the fit parameters.
+    fit_parameters: numpy array
+        Fit parameters of the fit function.
+    position_at_which_error_is_to_be_calculated: float
+        The position at which the error is to be calculated.
+
+    Example
+    -------
+    >>> m, n, x = sympy.symbols("m n x")
+    >>> covariance_matrix = np.array([[0.00073751, 0.00015666], [0.00015666, 0.00018446]])
+    >>> fit_parameters = np.array([1.12771593, -15.39462689])
+    >>> loss_analysis.CorrelatedError(
+        m * (x - 13.4) + n,
+        sympy.symbols("m n x"),
+        covariance_matrix,
+        fit_parameters,
+        np.log10(2 * 10**15),
+    )
+
+    Note
+    ----
+    THE INDEPENDENT VARIABLE MUST BE THE LAST SYMBOL IN THE LIST OF SYMBOLS! THE ORDER
+    OF THE SYMBOLS MUST BE THE SAME AS IN THE FIT FUNCTION/FIT PARAMETERS!
+    """
+
+    def __init__(
+        self,
+        function,
+        variables,
+        covariance_matrix,
+        fit_parameters,
+        point_at_which_error_is_to_be_calculated,
+    ):
+        self.function = function
+        self.variables = variables
+        self.covariance_matrix = covariance_matrix
+        self.fit_parameters = fit_parameters
+        self.point = point_at_which_error_is_to_be_calculated
+        self.derivatives = {}
+        self.total_sum_with_variables = sp.Float(0)
+        self.total_sum = sp.Float(0)
+        self.derivative_multiplication = [
+            [None for _ in range(len(self.covariance_matrix))]
+            for _ in range(len(self.covariance_matrix))
+        ]
+        self.error = self.calculate_error()
+
+    def __repr__(self):
+        return (
+            f"CorrelatedError:\nFunction: {self.function}\n"
+            + f"Variables: {self.variables}\nCov matrix:\n{self.covariance_matrix}\n"
+            + f"Fit parameters: {self.fit_parameters}\nDerivatives:\n{self.derivatives}"
+            + f"\ndf/dp_i * df/dp_j:\n{self.derivative_multiplication}\n"
+            + f"Total sum with var:\n{self.total_sum_with_variables}\n"
+            + f"Total sum inserted var:\n{self.total_sum}\nError: {self.error}"
+        )
+
+    def calculate_derivatives(self):
+        for variable in self.variables[:-1]:
+            self.derivatives[variable] = sp.diff(self.function, variable)
+
+    def determine_total_sum(self):
+        for index_i, row in enumerate(self.covariance_matrix):
+            for index_j, cov_element in enumerate(row):
+                self.derivative_multiplication[index_i][index_j] = (
+                    self.derivatives[self.variables[index_i]]
+                    * self.derivatives[self.variables[index_j]]
+                )
+                self.total_sum += (
+                    self.derivative_multiplication[index_i][index_j] * cov_element
+                )
+        self.total_sum_with_variables = self.total_sum
+
+    def insert_variable_values_into_total_sum(self):
+        for index, variable in enumerate(self.variables[:-1]):
+            self.total_sum = self.total_sum.subs(variable, self.fit_parameters[index])
+
+    def calculate_error(self):
+        self.calculate_derivatives()
+        self.determine_total_sum()
+        self.insert_variable_values_into_total_sum()
+        return np.sqrt(float(self.total_sum.subs(self.variables[-1], self.point)))
 
 
 def update_custom_rcparams(
@@ -530,7 +741,7 @@ def calculate_fig_dimensions(
 
     """
     inches_per_pt = 1.0 / 72.0  # .27, convert pt to inch
-    golden_ratio = (5 ** 0.5 - 1.0) / 2.0
+    golden_ratio = (5**0.5 - 1.0) / 2.0
 
     # If the figure ratio, figure width in pts fig_width_pt or figure height in pts
     # fig_height_pt has an invalid value, an error is raised.
@@ -576,12 +787,12 @@ def calculate_fig_dimensions(
 
 
 def data_plot(
-    x_values: Sequence[float],
-    y_values: Sequence[float],
+    x_values: Sequence[float | int],
+    y_values: Sequence[float | int],
     xlabel: str,
     ylabel: str,
-    x_err: Optional[Union[Sequence[float], float]] = None,
-    y_err: Optional[Union[Sequence[float], float]] = None,
+    x_err: Optional[Sequence[float] | float] = None,
+    y_err: Optional[Sequence[float] | float] = None,
     marker: Optional[str] = ".",
     ls: Optional[str] = None,
     color: Optional[str] = None,
@@ -635,7 +846,7 @@ def data_plot(
         For further colors visit:
 
         <https://matplotlib.org/3.5.0/tutorials/colors/colors.html>
-        
+
         <https://matplotlib.org/stable/gallery/color/named_colors.html>
 
     markersize : float, optional
@@ -765,8 +976,8 @@ def data_plot(
 
 def add_label_to_legend(
     variable_name_or_text: str,
-    variable_value: Optional[Union[float, int]] = None,
-    variable_err: Optional[Union[float, int]] = None,
+    variable_value: Optional[float | int] = None,
+    variable_err: Optional[float | int] = None,
     precision: Optional[int] = 0,
     magnitude: Optional[int] = 0,
     units: Optional[str] = None,
@@ -781,7 +992,7 @@ def add_label_to_legend(
     Parameters
     ----------
     variable_name_or_text : str
-        Name of the variable or text that is to be shown in the legend. 
+        Name of the variable or text that is to be shown in the legend.
 
     variable_value : float or int, optional
         Value of the variable. Default is None.
@@ -890,15 +1101,15 @@ def add_label_to_legend(
     # empty string for it.
     if variable_value is not None and variable_err is not None:
         variable_value_and_err_with_plus_minus_sign = "{:.{}f} \u00B1 {:.{}f}".format(
-            variable_value / 10 ** magnitude,
+            variable_value / 10**magnitude,
             precision,
-            variable_err / 10 ** magnitude,
+            variable_err / 10**magnitude,
             precision,
         )
 
     elif variable_value is not None and variable_err is None:
         variable_value_and_err_with_plus_minus_sign = "{:.{}f}".format(
-            variable_value / 10 ** magnitude, precision
+            variable_value / 10**magnitude, precision
         )
 
     elif variable_value is None and variable_err is None:
@@ -945,9 +1156,9 @@ def add_label_to_legend(
 def show_the_legend_with_ordered_labels(
     label_order: Optional[Sequence[int]] = None,
     framealpha_legend: Optional[float] = 1,
-    loc: Optional[Union[str, Tuple[float, float]]] = "best",
-    legend_fontsize: Optional[Union[int, float]] = None,
-    legend_line_width: Optional[Union[int, float]] = 2,
+    loc: Optional[str | Tuple[float, float]] = "best",
+    legend_fontsize: Optional[int | float] = None,
+    legend_line_width: Optional[int | float] = 2,
 ) -> None:
     """
     Show the labels of the plot in the desired order and show a uniform line width in
@@ -958,7 +1169,7 @@ def show_the_legend_with_ordered_labels(
     label_order : Sequence[int], optional
         Sequence of order of the labels starting with 0. len(label_order) must be the
         same as the number of labels. Default is None.
-    
+
     framealpha_legend : float, optional
         Transparency of the legend. Value of 0 means full and 1 no transparency. Default
         is 1.
@@ -1010,7 +1221,7 @@ def show_the_legend_with_ordered_labels(
 def save_figure(fname: str, ftype: Optional[str] = "pdf") -> None:
     """
     Save the figure that was created with Matplotlib.
-    
+
     If the folder "images", where the figures are stored, does not yet exist, it is
     created first in the directory of this file.
 
@@ -1076,3 +1287,72 @@ def save_figure(fname: str, ftype: Optional[str] = "pdf") -> None:
         os.mkdir(dir_path)
 
     plt.savefig(f"{file_path}.{ftype}", bbox_inches="tight")
+
+
+def uni_ms_colors() -> dict:
+    """
+    Dictionary of the colors of the University of Münster.
+
+    Grüße an Max den König fürs aufschreiben der Farben!
+
+    Returns
+    -------
+    dict
+        Dictionary of RGB colors.
+    """
+    return {
+        "weiß": "#ffffff",
+        "weiß Darker 10%": "#DCDCDC",
+        "weiß Darker 25%": "#B7B7B7",
+        "weiß Darker 50%": "#7A7A7A",
+        "weiß Darker 75%": "#3D3D3D",
+        "weiß Darker 90%": "#181818",
+        "Graphit": "#333F48",
+        "Graphit Lighter 80%": "#D2D9DF",
+        "Graphit Lighter 60%": "#A4B3BF",
+        "Graphit Lighter 40%": "#778E9F",
+        "Graphit Darker 25%": "#262F36",
+        "Graphit Darker 50%": "#191F24",
+        "Cassis": "#AF0078",
+        "Cassis Lighter 80%": "#FFBCEA",
+        "Cassis Lighter 60%": "#FF79D5",
+        "Cassis Lighter 40%": "#FF36C0",
+        "Cassis Darker 25%": "#83015A",
+        "Cassis Darker 50%": "#57003C",
+        "Lapis": "#00578A",
+        "Lapis Lighter 80%": "#B5E4FF",
+        "Lapis Lighter 60%": "#6AC8FF",
+        "Lapis Lighter 40%": "#20ADFF",
+        "Lapis Darker 25%": "#004168",
+        "Lapis Darker 50%": "#002C45",
+        "Cyan": "#009DD1",
+        "Cyan Lighter 80%": "#C3F0FF",
+        "Cyan Lighter 60%": "#87E1FF",
+        "Cyan Lighter 40%": "#4AD2FF",
+        "Cyan Darker 25%": "#00769D",
+        "Cyan Darker 50%": "#004E68",
+        "Ozean": "#006E89",
+        "Ozean Lighter 80%": "#B4F0FF",
+        "Ozean Lighter 60%": "#6AE2FF",
+        "Ozean Lighter 40%": "#1FD3FF",
+        "Ozean Darker 25%": "#005367",
+        "Ozean Darker 50%": "#003745",
+        "Türkis": "#008E96",
+        "Türkis Lighter 80%": "#B7FBFF",
+        "Türkis Lighter 60%": "#6FF7FF",
+        "Türkis Lighter 40%": "#27F3FF",
+        "Türkis Darker 25%": "#006A71",
+        "Türkis Darker 50%": "#00474B",
+        "Apfelgrün": "#7AB51D",
+        "Apfelgrün Lighter 80%": "#E6F7CB",
+        "Apfelgrün Lighter 60%": "#CDEE98",
+        "Apfelgrün Lighter 40%": "#B4E664",
+        "Apfelgrün Darker 25%": "#5C8816",
+        "Apfelgrün Darker 50%": "#3D5B0E",
+        "Periodot": "#B1C800",
+        "Periodot Lighter 80%": "#EDFF69",
+        "Periodot Lighter 60%": "#E8FF41",
+        "Periodot Lighter 40%": "#E4FF19",
+        "Periodot Darker 25%": "#849600",
+        "Periodot Darker 50%": "#586400",
+    }
