@@ -622,7 +622,9 @@ class CorrelatedError:
 
 
 def update_custom_rcparams(
-    designated_use: Optional[str] = "article", fontsize: Optional[float] = None
+    designated_use: Optional[str] = "article",
+    fontsize: Optional[float] = None,
+    palette_name: str = "default",
 ) -> None:
     """
     Update RC parameters so that the figures blend in nicely in the document.
@@ -640,6 +642,10 @@ def update_custom_rcparams(
     fontsize : float, optional
         Fontsize of the labels, legend, x- and y-ticklabels and title. Set this e.g. to
         the fontsize of your LaTeX document. Default is None.
+
+    palette_name : str, optional
+        Name of the color palette that is to be used. Default is 'default'. Look into
+        the function set_color_palette() for further information.
 
     """
     # If fontsize or designated_use have an invalid value, an error is raised.
@@ -660,6 +666,7 @@ def update_custom_rcparams(
         elif designated_use == "powerpoint":
             fontsize = 7
 
+    set_color_palette(palette_name)
     # Dictionary containing the rc parameters that are to be updated.
     params = {
         "axes.edgecolor": "#595959",
@@ -1356,3 +1363,125 @@ def uni_ms_colors() -> dict:
         "Periodot Darker 25%": "#849600",
         "Periodot Darker 50%": "#586400",
     }
+
+
+def dark_colors_colorbrewer() -> dict:
+    """
+    Returns a dictionary of dark colors from the ColorBrewer palette. The dictionary
+    contains color names as keys and their corresponding hex color codes as values.
+    Additionally, the colors are mapped to keys "C0" to "C7" for convenience.
+    For reference visit: https://scottplot.net/cookbook/4.1/colors/#dark
+
+    Returns
+    -------
+        dict: A dictionary with color names and their hex codes.
+    """
+    colors = {
+        "teal": "#1B9E77",
+        "ocher": "#D95F02",
+        "violet": "#7570B3",
+        "pink": "#E7298A",
+        "green": "#66A61E",
+        "yellow": "#E6AB02",
+        "brown": "#A6761D",
+        "grey": "#666666",
+    }
+    return colors
+
+
+def light_and_dark_colors_colorbrewer() -> dict:
+    """
+    Returns a dictionary of light and dark colors from the ColorBrewer palette. The
+    dictionary contains color names as keys and their corresponding hex color codes as
+    values. Additionally, the colors are mapped to keys "C0" to "C15" for convenience.
+    For reference visit: https://scottplot.net/cookbook/4.1/colors/#dark-pastel
+
+    Returns
+    -------
+        dict: A dictionary with color names and their hex codes.
+    """
+    colors = dark_colors_colorbrewer()
+    light_colors = {
+        "light_teal": "#66C2A5",
+        "light_ocher": "#FC8D62",
+        "light_violet": "#8DA0CB",
+        "light_pink": "#E78AC3",
+        "light_green": "#A6D854",
+        "light_yellow": "#FFD92F",
+        "light_brown": "#E5C494",
+        "light_grey": "#B3B3B3",
+    }
+    colors.update(light_colors)
+    return colors
+
+
+def colors_summer_splash() -> dict:
+    """
+    Returns a dictionary of summer splash colors. The dictionary contains the keys "C0"
+    to "C3" and their corresponding hex color codes as values. The colors are mapped to
+    the default color cycle of Matplotlib for convenience.
+    For reference visit: https://scottplot.net/cookbook/4.1/colors/#summer-splash
+
+    Returns
+    -------
+        dict: A dictionary with color names and their hex codes.
+    """
+    colors = {"C0": "#05445E", "C1": "#189AB4", "C2": "#75E6DA", "C3": "#D4F1F4"}
+    return colors
+
+
+def default_20_mpl_colors() -> dict:
+    colors = mpl.colors.TABLEAU_COLORS.copy()
+    light_colors = {
+        "tab:light_blue": "#AEC7E8",
+        "tab:light_orange": "#FFBB78",
+        "tab:light_green": "#98DF8A",
+        "tab:light_red": "#FF9896",
+        "tab:light_purple": "#C5B0D5",
+        "tab:light_brown": "#C49C94",
+        "tab:light_pink": "#F7B6D2",
+        "tab:light_gray": "#C7C7C7",
+        "tab:light_olive": "#DBDB8D",
+        "tab:light_cyan": "#9EDAE5",
+    }
+    colors.update(light_colors)
+    return colors
+
+
+def set_color_palette(palette_name: str = "default") -> None:
+    """
+    Set the color palette for the plots.
+
+    Parameters
+    ----------
+    palette_name : str, optional
+        Name of the color palette that is to be used. Default is "default". Viable
+        values are "default", "default_20", "uni_ms", "dark_colorbrewer",
+        "light_and_dark_colorbrewer", "summer_splash" and "xkcd".
+
+    Return
+    ------
+        None
+    """
+    if palette_name == "default":
+        color_palette = mpl.colors.TABLEAU_COLORS
+    elif palette_name == "default_20":
+        color_palette = default_20_mpl_colors()
+    elif palette_name == "uni_ms":
+        color_palette = uni_ms_colors()
+    elif palette_name == "dark_colorbrewer":
+        color_palette = dark_colors_colorbrewer()
+    elif palette_name == "light_and_dark_colorbrewer":
+        color_palette = light_and_dark_colors_colorbrewer()
+    elif palette_name == "summer_splash":
+        color_palette = colors_summer_splash()
+    elif palette_name == "xkcd":
+        color_palette = mpl.colors.XKCD_COLORS
+    else:
+        raise ValueError(
+            f"Not a valid value for palette_name: {palette_name!r}. "
+            + "Must be 'default', 'default_20', 'uni_ms', 'dark_colorbrewer', "
+            + "'light_and_dark_colorbrewer', 'summer_splash' or 'xkcd'."
+        )
+
+    plt.rcParams["axes.prop_cycle"] = plt.cycler(color=list(color_palette.values()))
