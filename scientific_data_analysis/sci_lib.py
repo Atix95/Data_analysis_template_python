@@ -687,6 +687,12 @@ def update_custom_rcparams(
                 r"\usepackage{amssymb}",
                 r"\usepackage{siunitx}",
                 r"\usepackage{icomma}",
+                r"\sisetup{",
+                r"separate-uncertainty=true,",
+                r"exponent-product = \times,",
+                r"output-product = \cdot,",
+                r"group-minimum-digits = 4,",
+                r"group-digits = all,}",
             ]
         ),
         "text.usetex": True,
